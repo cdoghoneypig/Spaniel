@@ -90,7 +90,7 @@ def Get_Bullets(nom_counter, nom_list):
         print(", ".join(kw["bullets"].keys()))
 
 
-  print("Great, we'll run with", ", ".join(l))
+  # print("Great, we'll run with", ", ".join(l))
   return l
 
 def Write_Letter(final_bullets, url):
@@ -210,9 +210,18 @@ for each_file in os.listdir(source_dir):
   if Bad_File(each_file):
     # print("Ignoring,", each_file)
     continue
-  employer, role = each_file.split(" - ")
-  role = role.split(".txt")[0]
-  print("\nFor", role, "at", employer)
+  print("\n- - - - - - -")
+  try:
+    employer, role = each_file.split(" - ")  
+    role = role.split(".txt")[0]
+  except ValueError:
+    print("* * * *")
+    print("Problem with employer and role names here")
+    print(each_file)
+    employer = input("Input good employer name: ")
+    role = input("Input good role name: ")
+    print("* * * *\n\n")
+  print(role, "at", employer)
   JD_file = open(source_dir + each_file, 'r', encoding = 'utf-8-sig')
   JD_formatted = JD_file.read()
   JD_text = JD_formatted.lower()
