@@ -1,0 +1,41 @@
+/*judgy css*/
+
+body {
+    font-family: 'Nunito', Helvetica;
+    color: #444;
+}
+
+h1 {
+    font-size: 1.5em;
+}
+
+h2 {
+    font-size: 1.2em;
+    font-weight: 900;
+    margin-top: 1em;
+    margin-bottom: 0;
+}
+
+.top-row {
+    margin-top: 3em;
+}
+
+#description {
+    margin: 1em 0 3em 0;
+    padding: 1em;
+    outline: 1px solid rgba(0,0,0,.1);
+}
+
+#doggy {
+    text-align: center;
+    font-size: 1.5em;
+    font-family: 'Comfortaa';
+}
+
+#dogpic {
+    width:80%;
+}
+
+#spaniel_name{
+    
+}
