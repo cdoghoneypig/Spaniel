@@ -14,11 +14,11 @@ from collections import defaultdict
 
 # proximity feature to be done later
 
-def Build_Keyword_Dict(verbose):
+def Build_Keyword_Dict(csv_folder, json_file_path, verbose):
   keyword_dict = defaultdict(lambda: {})
 
-  csv_folder = 'keywords/'
-  json_file_path = 'keyword_dict.json'
+  # csv_folder = 'keywords/'
+  # json_file_path = 'keyword_dict.json'
    
   if verbose:
     print("\n\nThis script will scan keyword csv files from", csv_folder, end = "\n\n")

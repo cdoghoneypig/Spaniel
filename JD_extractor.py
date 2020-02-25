@@ -18,9 +18,10 @@ def Bad_File(fn):
     return False
   return True
 
-def Extract_JD():
-  JD_folder = "jd_files"
-  source_dir = "whole_job_ad_pages/"
+def Extract_JD(source_dir, JD_folder):
+  # JD_folder = "jd_files"
+  # source_dir = "whole_job_ad_pages/"
+
   # for all files in directory
   for each_file in os.listdir(source_dir):
     if Bad_File(each_file):

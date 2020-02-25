@@ -12,6 +12,7 @@
 import os, itertools, sys, json
 from collections import defaultdict, Counter
 from datetime import date
+import configparser
 
 # libraries i wrote
 import keywords_csv_to_json, JD_extractor
@@ -142,19 +143,36 @@ def Display_JD(where, who, what):
   # lame but we use Selenium refresh command to load the altered html document
   driver.refresh()
 
+config = configparser.ConfigParser()
+config.read('spaniel.cfg')
+cfg = {}
+# import code; code.interact(local = locals())
+cfg['Webdriver'] = config.get('DEFAULT', 'Webdriver')
+cfg['InputFolder'] = config.get('DEFAULT', 'InputFolder')
+cfg['TextFileFolder'] = config.get('DEFAULT', 'TextFileFolder')
+cfg['KeywordFolder'] = config.get('DEFAULT', 'KeywordFolder')
+cfg['OutputFolder'] = config.get('DEFAULT', 'OutputFolder')
+cfg['LogFile'] = config.get('DEFAULT', 'LogFile')
+cfg['KeywordJson'] = config.get('DEFAULT', 'KeywordJson')
+
+
 today = date.today()
 try:
-  with open("letters_written.json", "r") as read_file:
+  with open(cfg['LogFile'], "r") as read_file:
         letters_written = json.load(read_file)
 except FileNotFoundError:
+  print("No history log found. Starting new one!")
   letters_written = {}
 
 
 # extract JD text files from original html
-JD_extractor.Extract_JD()
+JD_extractor.Extract_JD(cfg['InputFolder'], cfg['TextFileFolder'])
 
 # 'False' sets function to quiet mode, vs verbose
-kw = keywords_csv_to_json.Build_Keyword_Dict(False)
+kw = keywords_csv_to_json.Build_Keyword_Dict(
+                                            cfg['KeywordFolder'], 
+                                            cfg['KeywordJson'], 
+                                            False)
 # kw["keywords] = {"spicy" : "tasty"}
 # kw["bullets"] = {"tasty": "I am a very tasty noodle!"}
 # kw["textons"] = {"greeting": "Hey there,"}
@@ -165,14 +183,18 @@ kw = keywords_csv_to_json.Build_Keyword_Dict(False)
 kwf = Get_Frequency(kw["keywords"])
 # kwf["tasty"] = 4
 
-source_dir = "jd_files/"
-letter_dir = "Letters/" + str(today) + "/"
+
+source_dir = cfg['TextFileFolder']
+letter_dir = cfg['OutputFolder'] + str(today) + "/"
+
+# source_dir = "jd_files/"
+# letter_dir = "Letters/" + str(today) + "/"
 if not os.path.isdir(letter_dir):
   os.mkdir(letter_dir[:-1])
 
 print("\n\nScript scans", source_dir, "and composes cover letters for each job!")
 
-driver = webdriver.Chrome()
+driver = webdriver.Chrome(cfg['Webdriver'])
 driver.set_window_size(1024, 1000)
 portal_file = 'jd_shower.html'
 portal_url = "file:" + os.getcwd() + '/' + portal_file
@@ -236,7 +258,7 @@ for each_file in os.listdir(source_dir):
   Write_Letter(three_bullets, ad_url)
   letters_written[(employer + " - " + role)] = [str(today)]
   letters_written[(employer + " - " + role)].extend(three_bullets)
-  with open("letters_written.json", 'w') as outfile:
+  with open(cfg['LogFile'], 'w') as outfile:
         json.dump(letters_written, outfile, indent=2, sort_keys=True)
   
 print("\n\nWoof Woof! Huzzah!")
