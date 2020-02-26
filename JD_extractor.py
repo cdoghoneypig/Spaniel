@@ -18,6 +18,48 @@ def Bad_File(fn):
     return False
   return True
 
+def Get_Angel_Ad(saved_from, ad_soup):
+  # get employer
+  name_div = ad_soup.find('div', {"class": "name_af83c"})
+  employer = name_div.find('h1').get_text()
+
+  # find role
+  try:
+    role_div = ad_soup.find('div', {"class": "title_927e9"})
+    role = role_div.find('h2').get_text()
+    # fucking ui/ux jobs have a slash. Kill it!
+    role = role.replace("/","-")
+  except AttributeError:
+    print("No role found. Is this a legit job ad?")
+    print(saved_from)
+    return False
+
+  # find the description div
+  JD_div = ad_soup.find('div', {"class": "description_c90c4"})
+  # get the text and convert <br> elements to \n
+  JD_text = saved_from + "\n" + JD_div.get_text("\n")
+
+  return employer, role, JD_text
+
+def Get_Indeed_Ad(saved_from, ad_soup):
+  # get employer
+  company_info_div = ad_soup.find('div', {'class': 'jobsearch-InlineCompanyRating'})
+  name_div = next(company_info_div.children, None)
+  employer = name_div.get_text()
+
+  # find role
+  role_div = ad_soup.find('h3', {"class": "jobsearch-JobInfoHeader-title"})
+  role = role_div.get_text()
+  # fucking ui/ux jobs have a slash. Kill it!
+  role = role.replace("/","-")   
+
+  # find the description div
+  JD_div = ad_soup.find('div', {"id": "jobDescriptionText"})
+  # get the text and convert <br> elements to \n
+  JD_text = saved_from + "\n" + JD_div.get_text("\n")
+
+  return employer, role, JD_text
+
 def Extract_JD(source_dir, JD_folder):
   # JD_folder = "jd_files"
   # source_dir = "whole_job_ad_pages/"
@@ -42,41 +84,26 @@ def Extract_JD(source_dir, JD_folder):
       # print(saved_from)
 
     # check if it's angellist
-    if "angel.co" in saved_from:
-      print("From", "AngelList")
+    if 'angel.co' in saved_from:
+      job_board = 'angellist'
+      employer, role, description = Get_Angel_Ad(saved_from, ad_soup)
+    elif 'indeed.com' in saved_from:
+      job_board = 'indeed'
+      employer, role, description = Get_Indeed_Ad(saved_from, ad_soup)
 
-    # find the company name
-    # div with class name_af83c
-    name_div = ad_soup.find('div', {"class": "name_af83c"})
-    employer = name_div.find('h1').get_text()
+    print("From", job_board)     
     print("Employer:", employer)
-
-    # find the role name
-    try:
-      role_div = ad_soup.find('div', {"class": "title_927e9"})
-      role_name = role_div.find('h2').get_text()
-      role_name = role_name.replace("/","-")
-      print("Role:", role_name)
-    except AttributeError:
-      print("No role found. Is this a legit job ad?")
-      print(saved_from)
-      return False
-
-    # find the description div
-    JD_div = ad_soup.find('div', {"class": "description_c90c4"})
-    # get the text and convert <br> elements to \n
-    JD_text = saved_from + "\n" + JD_div.get_text("\n")
-    JD_text = JD_text
+    print("Role:", role)
 
     # save clean JD text
-    JD_name = JD_folder + '/' + employer + ' - ' + role_name + '.txt'
+    JD_name = JD_folder + '/' + employer + ' - ' + role + '.txt'
     if not Already_Done(JD_name):
       print("Saving", JD_name)
       # JD_text_file = open(JD_name,'w') 
       # JD_text_file.write(JD_text)
       # JD_text_file.close() 
       with codecs.open(JD_name, "w", "utf-8-sig") as temp:
-        temp.write(JD_text)
+        temp.write(description)
     else:
       pass
 

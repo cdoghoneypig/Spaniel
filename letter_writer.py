@@ -9,7 +9,7 @@
 # 7 program writes new cover letter, saves it
 
 # basic tools
-import os, itertools, sys, json
+import os, itertools, sys, json, re
 from collections import defaultdict, Counter
 from datetime import date
 import configparser
@@ -38,10 +38,8 @@ def Get_Frequency(word_index):
     d[bullet_name] += 1
   return d
 
-def Count_Occurrences(word, source_text):
-    return source_text.lower().split().count(word)
-
 def Get_Distance(w1, w2, source_text):
+  # Not actually using this function yet
   if w1 in source_text and w2 in source_text:
     w1_indexes = [index for index, value in enumerate(source_text) if value == w1]    
     w2_indexes = [index for index, value in enumerate(source_text) if value == w2]    
@@ -126,6 +124,7 @@ def Display_JD(where, who, what):
 
   # to insert the JD from a text file, we gotta replace \n with <br>
   jd_with_br = what.replace("\n","<br>")
+
   # now we turn this into a soup object
   jd_html = BeautifulSoup(jd_with_br, 'html5lib')
   # unfortunately this wraps it in html, head/head, body
@@ -142,6 +141,62 @@ def Display_JD(where, who, what):
     outf.write(portal_soup.prettify())
   # lame but we use Selenium refresh command to load the altered html document
   driver.refresh()
+  driver.find_element_by_tag_name('body').send_keys(Keys.CONTROL + Keys.HOME)
+
+def Span_Keyword(a_word, a_bullet, jd):
+  # this function has a bug. It can get false positives
+  # for text it inserts in. potentially a LOT of insertions
+  # though not actually infinite
+  real_hits = re.findall(a_word, jd, re.IGNORECASE)
+  for each_hit in real_hits:
+    # defining spanned_word here so it can
+    # match case with original
+    # <span class="cross-functional" title="cross-functional">
+    #     work closely with
+    #    </span>
+    spanned_word = ('<span class="' 
+                + bullet_class[a_bullet] 
+                + '" title="'
+                + bullet_class[a_bullet] 
+                +'">' 
+                + each_hit 
+                + '</span>')
+    jd = jd.replace(each_hit, spanned_word)
+  return jd
+
+def Set_Bullet_Class(bullet_list):
+  bullet_class = {}
+  bullet_css = open(cfg['BulletCSS'],'w')
+  for each_bullet in bullet_list:
+    bullet_class[each_bullet] = each_bullet.replace(' ','-')
+    bullet_css.write('.' + bullet_class[each_bullet] + ' {')
+    bullet_css.write('\n\t')
+    # should use real color set!
+    bullet_css.write('background-color: ' + colors[each_bullet] + ';')
+    bullet_css.write('\n')
+    bullet_css.write('}\n\n')
+
+    bullet_css.write('.' + bullet_class[each_bullet] + ':hover {')
+    bullet_css.write('\n\t')
+    # should use real color set!
+    bullet_css.write('background-color: ' 
+                      + colors[each_bullet].replace('.1','.5') + ';')
+    bullet_css.write('\n')
+    bullet_css.write('}\n\n')
+  bullet_css.close()
+  return bullet_class
+    
+def Build_Legend(bullets):
+  ul_soup = BeautifulSoup('', 'html.parser')
+  new_ul = ul_soup.new_tag('ul', attrs={'id': 'bullet-legend'})
+  # add a bunch of list items
+  for i, each_item in enumerate(bullets):
+    newtag = ul_soup.new_tag('li', attrs={'class': bullet_class[each_item]})
+    newtag.string = each_item
+    new_ul.insert(i+1, newtag)
+  return new_ul
+
+
 
 config = configparser.ConfigParser()
 config.read('spaniel.cfg')
@@ -154,7 +209,9 @@ cfg['KeywordFolder'] = config.get('DEFAULT', 'KeywordFolder')
 cfg['OutputFolder'] = config.get('DEFAULT', 'OutputFolder')
 cfg['LogFile'] = config.get('DEFAULT', 'LogFile')
 cfg['KeywordJson'] = config.get('DEFAULT', 'KeywordJson')
-
+cfg['HTMLPage'] = config.get('DEFAULT', 'HTMLPage')
+cfg['BulletCSS'] = config.get('DEFAULT', 'BulletCSS')
+cfg['PaletteJSON'] = config.get('DEFAULT', 'PaletteJSON')
 
 today = date.today()
 try:
@@ -180,9 +237,24 @@ kw = keywords_csv_to_json.Build_Keyword_Dict(
 
 # build count of how many keywords there are per bullet
 # then use this later to weight for bullets with many keywords vs few
-kwf = Get_Frequency(kw["keywords"])
+kwf = Get_Frequency(kw['keywords'])
 # kwf["tasty"] = 4
 
+# set up bullet to color palette dictionary
+with open(cfg['PaletteJSON'], "r") as read_file:
+        palette = json.load(read_file)
+colors = {}
+for i, each_bullet in enumerate(sorted(kw['bullets'].keys())):
+  try:
+    colors[each_bullet] = palette[i]
+  except IndexError:
+    print("No palette color for", each_bullet, i)
+    print("Using same color as", sorted(kw['bullets'].keys())[0])
+    colors[each_bullet] = palette[0]
+
+
+# this dict maps bullets, which may have spaces, to css class names
+bullet_class = Set_Bullet_Class(sorted(kw['bullets'].keys()))
 
 source_dir = cfg['TextFileFolder']
 letter_dir = cfg['OutputFolder'] + str(today) + "/"
@@ -196,7 +268,7 @@ print("\n\nScript scans", source_dir, "and composes cover letters for each job!"
 
 driver = webdriver.Chrome(cfg['Webdriver'])
 driver.set_window_size(1024, 1000)
-portal_file = 'jd_shower.html'
+portal_file = cfg['HTMLPage']
 portal_url = "file:" + os.getcwd() + '/' + portal_file
 # print("Loading", portal_url)
 driver.get(portal_url)
@@ -205,6 +277,12 @@ driver.get(portal_url)
 with open(portal_file, encoding = 'utf-8-sig') as portal_html:
   # make soup from it
   portal_soup = BeautifulSoup(portal_html, 'html5lib')
+
+# build legend
+portal_soup.find('ul', id='bullet-legend') \
+            .replace_with(
+              Build_Legend(sorted(kw['bullets'].keys()))
+              )
 
 for each_file in os.listdir(source_dir):
   if Bad_File(each_file):
@@ -225,40 +303,37 @@ for each_file in os.listdir(source_dir):
   JD_file = open(source_dir + each_file, 'r', encoding = 'utf-8-sig')
   JD_formatted = JD_file.read()
   JD_text = JD_formatted.lower()
-  # print(JD_text)
-  ad_url = JD_text.split("\n")[0]
 
-  # display job ad
-  Display_JD(employer, role, JD_formatted)
+  ad_url = JD_text.split("\n")[0]
 
   # keyword scanner
   topic_votes = defaultdict(lambda: 0)
   for each_keyword in kw['keywords']:
-    hit_count = JD_text.count(each_keyword)
+    hit_count = len(re.findall(each_keyword,JD_formatted,re.IGNORECASE))
+    # hit_count = JD_text.count(each_keyword)
     if hit_count > 0:
+      # one nomination per appearance of the keyword
       nominee = kw['keywords'][each_keyword]
       topic_votes[nominee] += hit_count
+      JD_formatted = Span_Keyword(each_keyword, 
+                                  kw['keywords'][each_keyword], 
+                                  JD_formatted)
+  # import code; code.interact(local = locals())
   weighted_votes = {}
   for each_nom in topic_votes:
     weighted_votes[each_nom] = topic_votes[each_nom] / kwf[each_nom]
-
-  # votes = Counter(topic_votes)
-  # top_votes = []
-  # for each_nom in votes.most_common(6):
-  #   # print("\t" + each_nom[0] + ": " + str(each_nom[1]))
-  #   top_votes.append(each_nom[0])
-
   weighted = Counter(weighted_votes)
+  
   # extract the nominees with most votes as strings in a list
-
   print("Recommended bullet points are")
   top_weighted = []
   for each_nom in weighted.most_common(6):
     print("\t" + each_nom[0] + ": " + "{0:.0%}".format(each_nom[1]))
     top_weighted.append(each_nom[0])
+
+  # display job ad
+  Display_JD(employer, role, JD_formatted)
   
-
-
   # Let the user decide
   # arguments should be (counter object, list object)
   three_bullets = Get_Bullets(weighted, top_weighted)
@@ -268,7 +343,7 @@ for each_file in os.listdir(source_dir):
   letters_written[(employer + " - " + role)] = [str(today)]
   letters_written[(employer + " - " + role)].extend(three_bullets)
   with open(cfg['LogFile'], 'w') as outfile:
-        json.dump(letters_written, outfile, indent=2, sort_keys=True)
+    json.dump(letters_written, outfile, indent=2, sort_keys=True)
   
 print("\n\nWoof Woof! Huzzah!")
 driver.quit()

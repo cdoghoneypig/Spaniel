@@ -24,6 +24,7 @@ h2 {
     margin: 1em 0 3em 0;
     padding: 1em;
     outline: 1px solid rgba(0,0,0,.1);
+    word-wrap: break-word;
 }
 
 #doggy {
@@ -38,4 +39,24 @@ h2 {
 
 #spaniel_name{
     
+}
+
+.fixed-right{
+  height: 100%;
+  width: 160px;
+  position: fixed;
+  z-index: 1;
+  top: 0;
+  right: 0;
+  overflow-x: hidden;
+  padding-top: 20px;
+}
+
+#bullet-legend {
+    list-style-type: none;
+    padding-left: 0;
+}
+
+#bullet-legend li {
+    margin: 1em 0;
 }
