@@ -1,16 +1,16 @@
-.B2B-SaaS {
+.PM {
 	background-color: rgba(5,253,193,.1);
 }
 
-.B2B-SaaS:hover {
+.PM:hover {
 	background-color: rgba(5,253,193,.5);
 }
 
-.PM {
+.SaaSy {
 	background-color: rgba(50,174,135,.1);
 }
 
-.PM:hover {
+.SaaSy:hover {
 	background-color: rgba(50,174,135,.5);
 }
 
@@ -22,123 +22,123 @@
 	background-color: rgba(56,114,97,.5);
 }
 
-.cross-functional {
+.data-viz {
 	background-color: rgba(0,0,0,.1);
 }
 
-.cross-functional:hover {
+.data-viz:hover {
 	background-color: rgba(0,0,0,.5);
 }
 
-.data-viz {
+.design-system {
 	background-color: rgba(28,52,43,.1);
 }
 
-.data-viz:hover {
+.design-system:hover {
 	background-color: rgba(28,52,43,.5);
 }
 
-.design-system {
+.designery {
 	background-color: rgba(43,82,26,.1);
 }
 
-.design-system:hover {
+.designery:hover {
 	background-color: rgba(43,82,26,.5);
 }
 
-.designery {
+.full-stack {
 	background-color: rgba(45,132,48,.1);
 }
 
-.designery:hover {
+.full-stack:hover {
 	background-color: rgba(45,132,48,.5);
 }
 
-.full-stack {
+.get-it-done {
 	background-color: rgba(1,183,22,.1);
 }
 
-.full-stack:hover {
+.get-it-done:hover {
 	background-color: rgba(1,183,22,.5);
 }
 
-.get-it-done {
+.initiative {
 	background-color: rgba(80,253,52,.1);
 }
 
-.get-it-done:hover {
+.initiative:hover {
 	background-color: rgba(80,253,52,.5);
 }
 
-.initiative {
+.market-experience {
 	background-color: rgba(162,209,142,.1);
 }
 
-.initiative:hover {
+.market-experience:hover {
 	background-color: rgba(162,209,142,.5);
 }
 
-.market-experience {
+.process {
 	background-color: rgba(132,146,108,.1);
 }
 
-.market-experience:hover {
+.process:hover {
 	background-color: rgba(132,146,108,.5);
 }
 
-.process {
+.proto {
 	background-color: rgba(170,186,179,.1);
 }
 
-.process:hover {
+.proto:hover {
 	background-color: rgba(170,186,179,.5);
 }
 
-.proto {
+.research {
 	background-color: rgba(205,255,240,.1);
 }
 
-.proto:hover {
+.research:hover {
 	background-color: rgba(205,255,240,.5);
 }
 
-.research {
+.startupy {
 	background-color: rgba(5,220,221,.1);
 }
 
-.research:hover {
+.startupy:hover {
 	background-color: rgba(5,220,221,.5);
 }
 
-.startupy {
+.systems-thinking {
 	background-color: rgba(73,159,170,.1);
 }
 
-.startupy:hover {
+.systems-thinking:hover {
 	background-color: rgba(73,159,170,.5);
 }
 
-.systems-thinking {
+.the-why {
 	background-color: rgba(48,109,130,.1);
 }
 
-.systems-thinking:hover {
+.the-why:hover {
 	background-color: rgba(48,109,130,.5);
 }
 
-.the-why {
+.wordsmith {
 	background-color: rgba(57,148,215,.1);
 }
 
-.the-why:hover {
+.wordsmith:hover {
 	background-color: rgba(57,148,215,.5);
 }
 
-.writing {
+.x-functional {
 	background-color: rgba(120,205,248,.1);
 }
 
-.writing:hover {
+.x-functional:hover {
 	background-color: rgba(120,205,248,.5);
 }
 

@@ -304,6 +304,13 @@ for each_file in os.listdir(source_dir):
   JD_formatted = JD_file.read()
   JD_text = JD_formatted.lower()
 
+  # check if we already wrote a letter for this shit
+  letter_file_name = "letter " + employer + " - " + role + ".txt"
+  if os.path.isfile(letter_dir + letter_file_name):
+    print("Already have a letter for", role, "at", employer)
+    print("Skipping it!")
+    continue
+
   ad_url = JD_text.split("\n")[0]
 
   # keyword scanner
@@ -334,6 +341,7 @@ for each_file in os.listdir(source_dir):
   # display job ad
   Display_JD(employer, role, JD_formatted)
   
+
   # Let the user decide
   # arguments should be (counter object, list object)
   three_bullets = Get_Bullets(weighted, top_weighted)
