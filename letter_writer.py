@@ -1,17 +1,18 @@
 # letter_writer.py
 # script composes cover letters based on
 # 1 extract metadata from filename
-# 2 scan JD for industry name
-# 3 scan JD for keywords
-# 4 display JD in separate window?
-# 5 recommend top bullet point matches to user
-# 6 user accepts or choose to change selection
-# 7 program writes new cover letter, saves it
+# 2 scan JD for keywords
+# 3 display JD in separate window
+# 4 recommend top bullet point matches to user
+# 5 user accepts or choose to change selection
+# 6 program writes new cover letter, saves it
+# 7 log what went down
 
 # basic tools
-import os, itertools, sys, json, re
+import os, itertools, sys, json, csv
+import re
 from collections import defaultdict, Counter
-from datetime import date
+from datetime import datetime
 import configparser
 
 # libraries i wrote
@@ -84,8 +85,9 @@ def Get_Bullets(nom_counter, nom_list):
         which_bullet += 1
       # otherwise, show the acceptable options and try again
       else:
-        print(typed_in, "not recognized. Acceptable options are:")   
-        print(", ".join(kw["bullets"].keys()))
+        print(typed_in, "not recognized. Options are:")   
+        for each_bullet in sorted(kw["bullets"].keys()):
+          print("  *", each_bullet)
 
 
   # print("Great, we'll run with", ", ".join(l))
@@ -212,8 +214,12 @@ cfg['KeywordJson'] = config.get('DEFAULT', 'KeywordJson')
 cfg['HTMLPage'] = config.get('DEFAULT', 'HTMLPage')
 cfg['BulletCSS'] = config.get('DEFAULT', 'BulletCSS')
 cfg['PaletteJSON'] = config.get('DEFAULT', 'PaletteJSON')
+cfg['JobAppCSVFolder'] = config.get('DEFAULT', 'JobAppCSVFolder')
 
-today = date.today()
+today = datetime.now().strftime("%Y-%m-%d")
+now = datetime.now().strftime("%Y-%m-%d %H-%M")
+
+# append to the log of letters Spaniel wrote
 try:
   with open(cfg['LogFile'], "r") as read_file:
         letters_written = json.load(read_file)
@@ -221,6 +227,13 @@ except FileNotFoundError:
   print("No history log found. Starting new one!")
   letters_written = {}
 
+# create a csv for today's run with headers
+# applied_to_date, role, employer, location, notes, ad_url
+# start with this blank list
+job_app_csv_path = cfg['JobAppCSVFolder'] + now + '.csv'
+with open(job_app_csv_path, mode='w') as app_tracker:
+    app_writer = csv.writer(app_tracker)
+    app_writer.writerow(['Date', 'Role', 'Employer', 'Location', 'Notes', 'URL'])
 
 # extract JD text files from original html
 JD_extractor.Extract_JD(cfg['InputFolder'], cfg['TextFileFolder'])
@@ -257,7 +270,7 @@ for i, each_bullet in enumerate(sorted(kw['bullets'].keys())):
 bullet_class = Set_Bullet_Class(sorted(kw['bullets'].keys()))
 
 source_dir = cfg['TextFileFolder']
-letter_dir = cfg['OutputFolder'] + str(today) + "/"
+letter_dir = cfg['OutputFolder'] + today + "/"
 
 # source_dir = "jd_files/"
 # letter_dir = "Letters/" + str(today) + "/"
@@ -307,11 +320,13 @@ for each_file in os.listdir(source_dir):
   # check if we already wrote a letter for this shit
   letter_file_name = "letter " + employer + " - " + role + ".txt"
   if os.path.isfile(letter_dir + letter_file_name):
-    print("Already have a letter for", role, "at", employer)
-    print("Skipping it!")
+    print("Already have a letter! Skipping it.")
     continue
 
+  # really this is metadata, but I've stashed it in the first 2 lines
+  # of the JD text file.
   ad_url = JD_text.split("\n")[0]
+  location = JD_text.split("\n")[1]
 
   # keyword scanner
   topic_votes = defaultdict(lambda: 0)
@@ -348,11 +363,22 @@ for each_file in os.listdir(source_dir):
   
   # Now use the bullets to compose a letter!
   Write_Letter(three_bullets, ad_url)
-  letters_written[(employer + " - " + role)] = [str(today)]
+  letters_written[(employer + " - " + role)] = [today]
   letters_written[(employer + " - " + role)].extend(three_bullets)
+  
+  # log that Spaniel wrote this letter
   with open(cfg['LogFile'], 'w') as outfile:
     json.dump(letters_written, outfile, indent=2, sort_keys=True)
   
+  # log this as a job app in a csv
+  # applied_to_date, role, employer, location, notes, ad_url
+  app_row = ['',role,employer,location,','.join(three_bullets), ad_url]
+  with open(job_app_csv_path, 'a', newline='') as f:
+    writer = csv.writer(f)
+    writer.writerow(app_row)
+
+
+
 print("\n\nWoof Woof! Huzzah!")
 driver.quit()
 

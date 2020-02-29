@@ -23,6 +23,10 @@ def Get_Angel_Ad(saved_from, ad_soup):
   name_div = ad_soup.find('div', {"class": "name_af83c"})
   employer = name_div.find('h1').get_text()
 
+  # location
+  location = ad_soup.find('span', {'class':'location_a70ea'})
+  location = location.get_text()
+
   # find role
   try:
     role_div = ad_soup.find('div', {"class": "title_927e9"})
@@ -37,15 +41,18 @@ def Get_Angel_Ad(saved_from, ad_soup):
   # find the description div
   JD_div = ad_soup.find('div', {"class": "description_c90c4"})
   # get the text and convert <br> elements to \n
-  JD_text = saved_from + "\n" + JD_div.get_text("\n")
+  JD_text = saved_from + "\n" + location + "\n" + JD_div.get_text("\n")
 
-  return employer, role, JD_text
+  return employer, location, role, JD_text
 
 def Get_Indeed_Ad(saved_from, ad_soup):
   # get employer
   company_info_div = ad_soup.find('div', {'class': 'jobsearch-InlineCompanyRating'})
   name_div = next(company_info_div.children, None)
   employer = name_div.get_text()
+
+  # find location
+  location = company_info_div.find('div', {'class': False}).string
 
   # find role
   role_div = ad_soup.find('h3', {"class": "jobsearch-JobInfoHeader-title"})
@@ -56,10 +63,43 @@ def Get_Indeed_Ad(saved_from, ad_soup):
   # find the description div
   JD_div = ad_soup.find('div', {"id": "jobDescriptionText"})
   # get the text and convert <br> elements to \n
-  JD_text = saved_from + "\n" + JD_div.get_text("\n")
+  JD_text = saved_from + "\n" + location + "\n" + JD_div.get_text("\n")
 
-  return employer, role, JD_text
+  return employer, location, role, JD_text
 
+def Get_LinkedIn_Ad(saved_from, ad_soup):
+  # get employer
+  name_label = ad_soup.find("span", class_="a11y-text", string="Company Name")
+  employer = name_label.find_next_sibling().string.strip().strip("\n")
+
+  # location
+  location = ad_soup.find("a", class_="jobs-top-card__exact-location")
+  if location:
+    location = location.string.strip().strip("\n")
+  # sometimes LinkedIn doesn't have an "exact address" so they use this
+  # jobs-top-card__bullet class
+  # sadly, it's also used for count of applicants. But this is the 1st one.
+  else:
+    location = ad_soup.find("span", class_="jobs-top-card__bullet")
+    location = location.string.strip().strip("\n")
+    if not location:
+      location = "-"
+
+  # find role
+  role_div = ad_soup.find('h1', {"class": "jobs-top-card__job-title"})
+  role = role_div.get_text()
+  # fucking ui/ux jobs have a slash. Kill it!
+  role = role.replace("/","-")   
+
+  # find the description div
+  JD_div = ad_soup.find('div', {"id": "job-details"})
+  # get the text and convert <br> elements to \n
+  JD_text = saved_from + "\n" + location + "\n" + JD_div.get_text("\n")
+
+  return employer, location, role, JD_text
+
+
+# main function called from letter_writer
 def Extract_JD(source_dir, JD_folder):
   # JD_folder = "jd_files"
   # source_dir = "whole_job_ad_pages/"
@@ -85,14 +125,18 @@ def Extract_JD(source_dir, JD_folder):
 
     # check if it's angellist
     if 'angel.co' in saved_from:
-      job_board = 'angellist'
-      employer, role, description = Get_Angel_Ad(saved_from, ad_soup)
+      job_board = 'AngelList'
+      employer, location, role, description = Get_Angel_Ad(saved_from, ad_soup)
     elif 'indeed.com' in saved_from:
-      job_board = 'indeed'
-      employer, role, description = Get_Indeed_Ad(saved_from, ad_soup)
+      job_board = 'Indeed'
+      employer, location, role, description = Get_Indeed_Ad(saved_from, ad_soup)
+    elif 'linkedin.com' in saved_from:
+      job_board = 'LinkedIn'
+      employer, location, role, description = Get_LinkedIn_Ad(saved_from, ad_soup)
 
     print("From", job_board)     
     print("Employer:", employer)
+    print("Location:", location)
     print("Role:", role)
 
     # save clean JD text
@@ -106,5 +150,6 @@ def Extract_JD(source_dir, JD_folder):
         temp.write(description)
     else:
       pass
+
 
 
