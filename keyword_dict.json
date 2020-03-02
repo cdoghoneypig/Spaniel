@@ -21,6 +21,7 @@
   },
   "keywords": {
     " UI": "full-stack",
+    " hats": "startupy",
     "Design Thinking": "designery",
     "Flexible": "get it done",
     "HTML/CSS": "proto",
@@ -65,6 +66,7 @@
     "entrepreneurial": "initiative",
     "excellence": "process",
     "eye": "designery",
+    "fast-growing": "startupy",
     "fast-paced startup environment": "startupy",
     "feedback ": "process",
     "from ideation to production.": "full-stack",
@@ -74,7 +76,6 @@
     "get shit done": "get it done",
     "graphic user interface": "full-stack",
     "hands-on": "get it done",
-    "hats": "startupy",
     "high bar": "process",
     "high fidelity prototype": "full-stack",
     "hire": "process",
@@ -144,6 +145,26 @@
     "Name": "Chuk",
     "Outro": "Feel free to reach out and let's talk more!",
     "Sign off": "Best,",
-    "Start Bullets": "A few things in particular might make me a good match for the role of "
+    "Start Bullets": "Three reasons I might be a good fit are:"
+  },
+  "weights": {
+    "PM": "1.6",
+    "ZaaZ": "2.67",
+    "business": "1",
+    "data viz": "3",
+    "design system": "1.33",
+    "designery": "0.56",
+    "full-stack": "0.36",
+    "get it done": "0.46",
+    "initiative": "0.63",
+    "market experience": "8",
+    "process": "0.38",
+    "proto": "0.67",
+    "research": "1.14",
+    "startupy": "1",
+    "systems thinking": "0.63",
+    "the why": "1.25",
+    "wordsmith": "0.75",
+    "x-functional": "0.63"
   }
 }

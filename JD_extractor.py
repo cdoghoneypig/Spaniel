@@ -2,6 +2,7 @@
 # script grabs JD out of a saved html file
 
 import os, sys, codecs
+import winsound
 from bs4 import BeautifulSoup, Comment
 
 def Already_Done(fpath):
@@ -98,6 +99,29 @@ def Get_LinkedIn_Ad(saved_from, ad_soup):
 
   return employer, location, role, JD_text
 
+def Get_Glassdoor_Ad(saved_from, ad_soup):
+  employer_info_div = ad_soup.find('div', {'class': 'empInfo'})
+  
+  # get employer
+  name_div = employer_info_div.find('div', {'class': 'employerName'})
+  # get the name here, not the span that follows in the same element
+  employer = name_div.contents[0]
+
+  # find location
+  location = employer_info_div.find('div', {'class': 'location'}).string
+
+  # find role
+  role_div = employer_info_div.find('div', {'class': 'title'})
+  role = role_div.get_text()
+  # fucking ui/ux jobs have a slash. Kill it!
+  role = role.replace("/","-")   
+
+  # find the description div
+  JD_div = ad_soup.find('div', {'id': 'JobDescriptionContainer'})
+  # get the text and convert <br> elements to \n
+  JD_text = saved_from + "\n" + location + "\n" + JD_div.get_text("\n")
+
+  return employer, location, role, JD_text
 
 # main function called from letter_writer
 def Extract_JD(source_dir, JD_folder):
@@ -127,12 +151,20 @@ def Extract_JD(source_dir, JD_folder):
     if 'angel.co' in saved_from:
       job_board = 'AngelList'
       employer, location, role, description = Get_Angel_Ad(saved_from, ad_soup)
+      winsound.Beep(800,10)
     elif 'indeed.com' in saved_from:
       job_board = 'Indeed'
       employer, location, role, description = Get_Indeed_Ad(saved_from, ad_soup)
+      winsound.Beep(1000,10)
     elif 'linkedin.com' in saved_from:
       job_board = 'LinkedIn'
       employer, location, role, description = Get_LinkedIn_Ad(saved_from, ad_soup)
+      winsound.Beep(1200,10)
+    elif 'glassdoor.com' in saved_from:
+      job_board = 'Glassdoor'
+      employer, location, role, description = Get_Glassdoor_Ad(saved_from, ad_soup)
+      winsound.Beep(1400,10)
+
 
     print("From", job_board)     
     print("Employer:", employer)

@@ -250,8 +250,6 @@ kw = keywords_csv_to_json.Build_Keyword_Dict(
 
 # build count of how many keywords there are per bullet
 # then use this later to weight for bullets with many keywords vs few
-kwf = Get_Frequency(kw['keywords'])
-# kwf["tasty"] = 4
 
 # set up bullet to color palette dictionary
 with open(cfg['PaletteJSON'], "r") as read_file:
@@ -340,17 +338,26 @@ for each_file in os.listdir(source_dir):
       JD_formatted = Span_Keyword(each_keyword, 
                                   kw['keywords'][each_keyword], 
                                   JD_formatted)
-  # import code; code.interact(local = locals())
-  weighted_votes = {}
-  for each_nom in topic_votes:
-    weighted_votes[each_nom] = topic_votes[each_nom] / kwf[each_nom]
-  weighted = Counter(weighted_votes)
   
+  weighted_votes = {}
+  # Here we weight by an arbitrary dict from a spreadsheet
+  # in the spreadsheet, I calculate weight by how special a topic is
+  # and how many keywords trigger its nomination
+  # eg "get it done" is worth 6 special points and has 13 triggers, so 
+  # the total weight is 6/13 vs design system with 4/3
+  # Idk if this will work better, but the previous weighting sucked.
+  for each_nom in topic_votes:
+    weighted_votes[each_nom] = round(topic_votes[each_nom] 
+                                    * float(kw['weights'][each_nom])
+                                    , 2)
+  weighted = Counter(weighted_votes)
+  # import code; code.interact(local = locals())
+
   # extract the nominees with most votes as strings in a list
   print("Recommended bullet points are")
   top_weighted = []
   for each_nom in weighted.most_common(6):
-    print("\t" + each_nom[0] + ": " + "{0:.0%}".format(each_nom[1]))
+    print('\t' + each_nom[0] + ': ' + '{0:.0%}'.format(each_nom[1]))
     top_weighted.append(each_nom[0])
 
   # display job ad
