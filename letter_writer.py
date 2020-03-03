@@ -80,13 +80,13 @@ def Get_Bullets(nom_counter, nom_list):
     while which_bullet < 3:
       typed_in = input("bullet #" + str(which_bullet + 1) + ": ")
       # if valid, store the input and advance the counter
-      if typed_in in kw["bullets"].keys():
+      if typed_in in kw[job_type]["bullets"].keys():
         l[which_bullet] = typed_in
         which_bullet += 1
       # otherwise, show the acceptable options and try again
       else:
         print(typed_in, "not recognized. Options are:")   
-        for each_bullet in sorted(kw["bullets"].keys()):
+        for each_bullet in sorted(kw[job_type]["bullets"].keys()):
           print("  *", each_bullet)
 
 
@@ -98,22 +98,22 @@ def Write_Letter(final_bullets, url):
   letter_file = open(letter_dir + letter_file_name,"w")
   letter_file.write(url)
   letter_file.write("\n\n")
-  letter_file.write(kw["textons"]["Greeting"])
+  letter_file.write(kw[job_type]["textons"]["Greeting"])
   letter_file.write("\n\n")
-  letter_file.write(kw["textons"]["Intro"])
+  letter_file.write(kw[job_type]["textons"]["Intro"])
   letter_file.write("\n\n")
-  letter_file.write(kw["textons"]["Start Bullets"])
+  letter_file.write(kw[job_type]["textons"]["Start Bullets"])
   letter_file.write((role + " at " + employer))
   letter_file.write("\n\n")
   # where the magic happens. Use the bullets as keys to grab copy
   for i in range (0,3):
-    letter_file.write(kw["bullets"][final_bullets[i]])
+    letter_file.write(kw[job_type]["bullets"][final_bullets[i]])
     letter_file.write("\n\n")
-  letter_file.write(kw["textons"]["Outro"])
+  letter_file.write(kw[job_type]["textons"]["Outro"])
   letter_file.write("\n\n")
-  letter_file.write(kw["textons"]["Sign off"])
+  letter_file.write(kw[job_type]["textons"]["Sign off"])
   letter_file.write("\n")
-  letter_file.write(kw["textons"]["Name"])
+  letter_file.write(kw[job_type]["textons"]["Name"])
   letter_file.close()
 
 
@@ -166,7 +166,7 @@ def Span_Keyword(a_word, a_bullet, jd):
     jd = jd.replace(each_hit, spanned_word)
   return jd
 
-def Set_Bullet_Class(bullet_list):
+def Set_Bullet_Class(bullet_list, colors):
   bullet_class = {}
   bullet_css = open(cfg['BulletCSS'],'w')
   for each_bullet in bullet_list:
@@ -198,7 +198,25 @@ def Build_Legend(bullets):
     new_ul.insert(i+1, newtag)
   return new_ul
 
+def Set_Color_CSS(bullet_list):
+  # needs input of sorted(kw[job_type]['bullets'].keys())
+  
+  # set up bullet to color palette dictionary
+  with open(cfg['PaletteJSON'], "r") as read_file:
+          palette = json.load(read_file)
+  colors = {}
+  for i, each_bullet in enumerate(bullet_list):
+    try:
+      colors[each_bullet] = palette[i]
+    except IndexError:
+      print("No palette color for", each_bullet, i)
+      print("Using same color as", bullet_list[0])
+      colors[each_bullet] = palette[0]  
+  # this dict maps bullets, which may have spaces, to css class names
+  # and assigns colors based on the colors dict
+  bullet_class = Set_Bullet_Class(bullet_list, colors)
 
+  return colors, bullet_class
 
 config = configparser.ConfigParser()
 config.read('spaniel.cfg')
@@ -248,24 +266,7 @@ kw = keywords_csv_to_json.Build_Keyword_Dict(
 # kw["textons"] = {"greeting": "Hey there,"}
 # kw["proximity"] = [["collaborate","teams",15,"cross-functional"]]
 
-# build count of how many keywords there are per bullet
-# then use this later to weight for bullets with many keywords vs few
 
-# set up bullet to color palette dictionary
-with open(cfg['PaletteJSON'], "r") as read_file:
-        palette = json.load(read_file)
-colors = {}
-for i, each_bullet in enumerate(sorted(kw['bullets'].keys())):
-  try:
-    colors[each_bullet] = palette[i]
-  except IndexError:
-    print("No palette color for", each_bullet, i)
-    print("Using same color as", sorted(kw['bullets'].keys())[0])
-    colors[each_bullet] = palette[0]
-
-
-# this dict maps bullets, which may have spaces, to css class names
-bullet_class = Set_Bullet_Class(sorted(kw['bullets'].keys()))
 
 source_dir = cfg['TextFileFolder']
 letter_dir = cfg['OutputFolder'] + today + "/"
@@ -289,11 +290,6 @@ with open(portal_file, encoding = 'utf-8-sig') as portal_html:
   # make soup from it
   portal_soup = BeautifulSoup(portal_html, 'html5lib')
 
-# build legend
-portal_soup.find('ul', id='bullet-legend') \
-            .replace_with(
-              Build_Legend(sorted(kw['bullets'].keys()))
-              )
 
 for each_file in os.listdir(source_dir):
   if Bad_File(each_file):
@@ -311,6 +307,37 @@ for each_file in os.listdir(source_dir):
     role = input("Input good role name: ")
     print("* * * *\n\n")
   print(role, "at", employer)
+
+  # first loop should trigger the error and get 'tbd' for job_type
+  try:
+    job_type
+  except NameError:
+    job_type = 'tbd'
+
+  # now decide what job_type should be
+  if 'researcher' in role.lower():
+    new_job_type = 'uxr'    
+  else:
+    new_job_type = 'uxd'
+  
+  print("Job type:", new_job_type)
+  print(role)
+
+  # if that's different from before, do stuff
+  # if it's the SAME don't rebuild the legend and css
+  if job_type != new_job_type:
+    job_type = new_job_type
+    # set colors
+    colors, bullet_class = Set_Color_CSS(sorted(kw[job_type]['bullets'].keys()))
+
+    # build legend
+    portal_soup.find('ul', id='bullet-legend') \
+                .replace_with(
+                  Build_Legend(sorted(kw[job_type]['bullets'].keys()))
+                  )
+    # restyle page for job
+    portal_soup.find('body')['class'] = job_type
+
   JD_file = open(source_dir + each_file, 'r', encoding = 'utf-8-sig')
   JD_formatted = JD_file.read()
   JD_text = JD_formatted.lower()
@@ -328,15 +355,15 @@ for each_file in os.listdir(source_dir):
 
   # keyword scanner
   topic_votes = defaultdict(lambda: 0)
-  for each_keyword in kw['keywords']:
+  for each_keyword in kw[job_type]['keywords']:
     hit_count = len(re.findall(each_keyword,JD_formatted,re.IGNORECASE))
     # hit_count = JD_text.count(each_keyword)
     if hit_count > 0:
       # one nomination per appearance of the keyword
-      nominee = kw['keywords'][each_keyword]
+      nominee = kw[job_type]['keywords'][each_keyword]
       topic_votes[nominee] += hit_count
       JD_formatted = Span_Keyword(each_keyword, 
-                                  kw['keywords'][each_keyword], 
+                                  kw[job_type]['keywords'][each_keyword], 
                                   JD_formatted)
   
   weighted_votes = {}
@@ -347,8 +374,10 @@ for each_file in os.listdir(source_dir):
   # the total weight is 6/13 vs design system with 4/3
   # Idk if this will work better, but the previous weighting sucked.
   for each_nom in topic_votes:
+    # if this line is failing, perhaps the weights csv does not match
+    # the keywords or bullets sheets.
     weighted_votes[each_nom] = round(topic_votes[each_nom] 
-                                    * float(kw['weights'][each_nom])
+                                    * float(kw[job_type]['weights'][each_nom])
                                     , 2)
   weighted = Counter(weighted_votes)
   # import code; code.interact(local = locals())

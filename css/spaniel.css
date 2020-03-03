@@ -25,6 +25,8 @@ h2 {
     padding: 1em;
     outline: 1px solid rgba(0,0,0,.1);
     word-wrap: break-word;
+    background-color: #fff;
+    color: #222;
 }
 
 #doggy {
@@ -54,9 +56,27 @@ h2 {
 
 #bullet-legend {
     list-style-type: none;
-    padding-left: 0;
+    padding: 1em;
+    background-color: #fff;
+    color: #000;
 }
 
 #bullet-legend li {
     margin: 1em 0;
+    padding: 0;
+}
+
+
+
+body.uxr {
+    background-color: #444;
+    color: #fff;
+    transition: background-color .5s linear,
+        color .5s linear;
+
+
+}
+
+body.uxd {
+
 }

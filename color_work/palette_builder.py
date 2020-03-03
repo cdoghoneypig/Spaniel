@@ -14,7 +14,7 @@ for each_row in color_in:
     bad_number = round(255 * float(bad_number)/100)
     # convert to 0-255 value then append to list
     rgba_list.append(str(bad_number))
-  rgba_list.append('.1')
+  rgba_list.append('.25')
   good_color = 'rgba(' + ','.join(rgba_list) + ')'
   print(good_color)
   color_list.append(good_color)
