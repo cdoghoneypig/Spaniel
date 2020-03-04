@@ -1,0 +1,39 @@
+(function(){
+    
+if (!window.ga){
+(function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+(i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+})(window,document,'script','https://www.google-analytics.com/analytics.js','ga');
+ga('create','UA-90780-1','auto',{allowLinker:true});ga('set', 'transport', 'beacon');ga('require','linkid');ga('require','linker');
+ga('linker:autoLink',['indeed.com','indeed.com.au','indeed.com.br','indeed.ca','indeed.ch','indeed.cl','indeed.com.co','indeed.de','indeed.es','indeed.fr','indeed.co.uk','indeed.hk','indeed.ie','indeed.co.in','indeed.jp','indeed.com.mx','indeed.nl','indeed.com.sg','indeed.co.za','indeed.ae','indeed.fi','indeed.lu','indeed.com.my','indeed.com.pe','indeed.com.ph','indeed.com.pk','indeed.pt','indeed.co.ve'],false,true);ga('require','displayfeatures');ga('send','pageview');}
+function loadScript() {
+   var script = document.createElement('script');
+   var done = false;
+   var head = document.getElementsByTagName("head")[0];
+   script.src = 'https://www.googletagmanager.com/gtag/js?id=DC-' + '6927552';
+   script.onload = script.onreadystatechange = function(){
+     if ( !done && (!this.readyState || this.readyState == "loaded" || this.readyState == "complete") ) {
+       done = true;
+       configureGtag();
+
+      // IE memory leak
+      script.onload = script.onreadystatechange = null;
+      head.removeChild( script );
+    }
+  };
+  head.appendChild(script);
+}
+function configureGtag() {
+    window.dataLayer = window.dataLayer || [];
+    window.gtag = function(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+    gtag('config', 'DC-' + '6927552');
+}
+loadScript();
+
+window._comscore=[];window._comscore.push({c1:'2',c2:'6486505',c4:'http:\/\/www.indeed.com\/m\/basecamp\/viewjob?jk\x3dd655d6e874bdb355\x26q\x3dproduct+designer\x26l\x3dSan+Francisco,+CA\x26tk\x3d1e2hff24soapu801\x26from\x3difa\x26utm_source\x3dpublisher\x26utm_medium\x3dcpc\x26utm_campaign\x3difa_catch_all\x26pub\x3d30f1e2fde9b7e2dc30a3075f9b002e880cace3277f6b99df',c15:'1di98r6ttnqor800'});
+var s=document.createElement('script'),e=document.getElementsByTagName('script')[0];s.async=1;s.src=(document.location.protocol=='https:'?'https://sb':'http://b')+'.scorecardresearch.com/beacon.js';e.parentNode.insertBefore(s,e);
+
+    })();
+    
