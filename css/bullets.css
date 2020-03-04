@@ -1,72 +1,144 @@
-.ZaaZ {
+.PM {
 	background-color: rgba(5,253,193,.1);
 }
 
-.ZaaZ:hover {
+.PM:hover {
 	background-color: rgba(5,253,193,.5);
 }
 
-.biz {
+.ZaaZ {
 	background-color: rgba(50,174,135,.1);
 }
 
-.biz:hover {
+.ZaaZ:hover {
 	background-color: rgba(50,174,135,.5);
 }
 
-.hella-methods {
+.business {
 	background-color: rgba(56,114,97,.1);
 }
 
-.hella-methods:hover {
+.business:hover {
 	background-color: rgba(56,114,97,.5);
 }
 
-.initiative {
+.data-viz {
 	background-color: rgba(0,0,0,.1);
 }
 
-.initiative:hover {
+.data-viz:hover {
 	background-color: rgba(0,0,0,.5);
 }
 
-.preso {
+.design-system {
 	background-color: rgba(28,52,43,.1);
 }
 
-.preso:hover {
+.design-system:hover {
 	background-color: rgba(28,52,43,.5);
 }
 
-.quant-stuff {
+.designery {
 	background-color: rgba(43,82,26,.1);
 }
 
-.quant-stuff:hover {
+.designery:hover {
 	background-color: rgba(43,82,26,.5);
 }
 
-.system-time {
+.full-stack {
 	background-color: rgba(45,132,48,.1);
 }
 
-.system-time:hover {
+.full-stack:hover {
 	background-color: rgba(45,132,48,.5);
 }
 
-.why-why {
+.get-it-done {
 	background-color: rgba(1,183,22,.1);
 }
 
-.why-why:hover {
+.get-it-done:hover {
 	background-color: rgba(1,183,22,.5);
 }
 
-.x-functional {
+.initiative {
 	background-color: rgba(80,253,52,.1);
 }
 
-.x-functional:hover {
+.initiative:hover {
 	background-color: rgba(80,253,52,.5);
+}
+
+.market-experience {
+	background-color: rgba(162,209,142,.1);
+}
+
+.market-experience:hover {
+	background-color: rgba(162,209,142,.5);
+}
+
+.process {
+	background-color: rgba(132,146,108,.1);
+}
+
+.process:hover {
+	background-color: rgba(132,146,108,.5);
+}
+
+.proto {
+	background-color: rgba(170,186,179,.1);
+}
+
+.proto:hover {
+	background-color: rgba(170,186,179,.5);
+}
+
+.research {
+	background-color: rgba(205,255,240,.1);
+}
+
+.research:hover {
+	background-color: rgba(205,255,240,.5);
+}
+
+.startupy {
+	background-color: rgba(5,220,221,.1);
+}
+
+.startupy:hover {
+	background-color: rgba(5,220,221,.5);
+}
+
+.systems-thinking {
+	background-color: rgba(73,159,170,.1);
+}
+
+.systems-thinking:hover {
+	background-color: rgba(73,159,170,.5);
+}
+
+.the-why {
+	background-color: rgba(48,109,130,.1);
+}
+
+.the-why:hover {
+	background-color: rgba(48,109,130,.5);
+}
+
+.wordsmith {
+	background-color: rgba(57,148,215,.1);
+}
+
+.wordsmith:hover {
+	background-color: rgba(57,148,215,.5);
+}
+
+.x-functional {
+	background-color: rgba(120,205,248,.1);
+}
+
+.x-functional:hover {
+	background-color: rgba(120,205,248,.5);
 }
 

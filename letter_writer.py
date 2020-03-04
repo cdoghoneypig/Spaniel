@@ -279,7 +279,7 @@ if not os.path.isdir(letter_dir):
 print("\n\nScript scans", source_dir, "and composes cover letters for each job!")
 
 driver = webdriver.Chrome(cfg['Webdriver'])
-driver.set_window_size(1024, 1000)
+driver.set_window_size(1200, 1000)
 portal_file = cfg['HTMLPage']
 portal_url = "file:" + os.getcwd() + '/' + portal_file
 # print("Loading", portal_url)

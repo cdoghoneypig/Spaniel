@@ -146,7 +146,7 @@
       "Name": "Chuk",
       "Outro": "Feel free to reach out and let's talk more!",
       "Sign off": "Best,",
-      "Start Bullets": "Three reasons I might be a good fit are:"
+      "Start Bullets": "Three reasons I might be a good fit for "
     },
     "weights": {
       "PM": "1.6",
@@ -182,9 +182,15 @@
       "x-functional": "* Sounds like you need someone who can think through roadmap, design implications, and what's practical to implement. My range of experience prepares me to provide all this."
     },
     "keywords": {
+      "SPSS": "quant stuff",
+      "SQL": "quant stuff",
       "SaaS": "ZaaZ",
+      "Tableau": "quant stuff",
+      "acting on the insights": "x-functional",
       "analytical": "system time",
+      "as a leader": "initiative",
       "b2b": "ZaaZ",
+      "brown bags": "preso",
       "collaborat": "x-functional",
       "communicate the results": "preso",
       "complex problems": "system time",
@@ -192,28 +198,36 @@
       "cross functional": "x-functional",
       "curious": "why why",
       "data analytics": "quant stuff",
+      "data manipulation": "quant stuff",
       "deep understanding": "why why",
       "design patterns": "x-functional",
+      "design strategy": "x-functional",
       "designers": "x-functional",
+      "diary studies": "hella methods",
       "different research methods": "hella methods",
       "document research results": "preso",
       "enterprise": "ZaaZ",
+      "ethnography": "hella methods",
       "execute ": "initiative",
       "handle logistics": "biz",
       "identify research topics": "initiative",
       "independently": "initiative",
+      "large data sets": "quant stuff",
       "manage work": "biz",
       "not afraid to ask questions": "why why",
       "organization skills": "biz",
       "plan and organize": "biz",
       "presentations": "preso",
       "prioritize": "x-functional",
+      "quantitative research methods": "quant stuff",
       "recruit": "initiative",
       "recruiting criteria": "hella methods",
+      "report": "preso",
       "research initiatives": "hella methods",
       "schedules ": "biz",
       "self-starter": "initiative",
       "server logs": "quant stuff",
+      "set up equipment": "initiative",
       "streamline processes": "biz"
     },
     "textons": {
@@ -222,7 +236,7 @@
       "Name": "Chuk",
       "Outro": "If this sounds like a match - reach out and let's talk.",
       "Sign off": "Best,",
-      "Start Bullets": "Three reasons I might be a good fit are:"
+      "Start Bullets": "Three reasons I might be a good fit for "
     },
     "weights": {
       "ZaaZ": "2.67",
