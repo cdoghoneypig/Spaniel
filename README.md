@@ -2,9 +2,12 @@
 ## Job Hunting Helper
 
 ### Dependencies:
-- Python 3.5
-- Selenium + webdriver
-- BeautifulSoup
+- Python 3.4
+- pathlib
+- Selenium
+- chrome webdriver https://chromedriver.chromium.org/downloads
+- BeautifulSoup4
+- configparser
 
 # Overview
 Spaniel is a set of scripts that scans job ads and produces appropriate cover letters. It automatically scans ads and nominates talking points, but lets the user select which talking points and in what order to put them.
