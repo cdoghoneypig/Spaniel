@@ -2,12 +2,15 @@
 # script grabs JD out of a saved html file
 
 import os, sys, codecs
-import winsound
+import pathlib
 from bs4 import BeautifulSoup, Comment
 
+if sys.platform == "win32":
+  import winsound
+
 def Already_Done(fpath):
-  if os.path.isfile(fpath) and os.path.getsize(fpath) > 0:
-    print("Already did", fpath)
+  if fpath.is_file() and os.path.getsize(str(fpath)) > 0:
+    print("Already did", str(fpath))
     return True
   else:
     return False
@@ -15,7 +18,7 @@ def Already_Done(fpath):
 def Bad_File(fn):
   if "." == fn[0]:
     return True
-  if fn.endswith(".html"):
+  if fn.endswith(".html") or fn.endswith(".htm"):
     return False
   return True
 
@@ -127,18 +130,25 @@ def Get_Glassdoor_Ad(saved_from, ad_soup):
 def Extract_JD(source_dir, JD_folder):
   # JD_folder = "jd_files"
   # source_dir = "whole_job_ad_pages/"
+  source_path = pathlib.Path(source_dir)
+  JD_path = pathlib.Path(JD_folder)
+
+  # if folder doesn't exist, create it
+  if not JD_path.is_dir():
+    JD_path.mkdir()
 
   # for all files in directory
-  for each_file in os.listdir(source_dir):
+  for each_file in os.listdir(str(source_path)):
     if Bad_File(each_file):
       # print("Ignoring,", each_file)
       continue
     print("\n")
-    ad_file = source_dir + each_file
     # ad_file = "whole_job_ad_pages/" + "Senior Product Designer at Mode _ AngelList.html"
+    # ad_path = pathlib.Path(ad_file)
+    ad_path = source_path / each_file
 
     # print("Let's open", ad_file)
-    with open(ad_file, "r", encoding='utf8') as ad_page:
+    with ad_path.open('r', encoding='utf8') as ad_page:
       ad_contents = ad_page.read()
       ad_soup = BeautifulSoup(ad_contents, features="html5lib")    
       # get the url from a comment
@@ -151,19 +161,23 @@ def Extract_JD(source_dir, JD_folder):
     if 'angel.co' in saved_from:
       job_board = 'AngelList'
       employer, location, role, description = Get_Angel_Ad(saved_from, ad_soup)
-      winsound.Beep(800,10)
+      if sys.platform == "win32":
+        winsound.Beep(800,10)
     elif 'indeed.com' in saved_from:
       job_board = 'Indeed'
       employer, location, role, description = Get_Indeed_Ad(saved_from, ad_soup)
-      winsound.Beep(1000,10)
+      if sys.platform == "win32":
+        winsound.Beep(1000,10)
     elif 'linkedin.com' in saved_from:
       job_board = 'LinkedIn'
       employer, location, role, description = Get_LinkedIn_Ad(saved_from, ad_soup)
-      winsound.Beep(1200,10)
+      if sys.platform == "win32":
+        winsound.Beep(1200,10)
     elif 'glassdoor.com' in saved_from:
       job_board = 'Glassdoor'
       employer, location, role, description = Get_Glassdoor_Ad(saved_from, ad_soup)
-      winsound.Beep(1400,10)
+      if sys.platform == "win32":
+        winsound.Beep(1400,10)
 
 
     print("From", job_board)     
@@ -172,13 +186,13 @@ def Extract_JD(source_dir, JD_folder):
     print("Role:", role)
 
     # save clean JD text
-    JD_name = JD_folder + '/' + employer + ' - ' + role + '.txt'
+    JD_name = JD_path / (employer + ' - ' + role + '.txt')
     if not Already_Done(JD_name):
-      print("Saving", JD_name)
+      print("Saving", str(JD_name))
       # JD_text_file = open(JD_name,'w') 
       # JD_text_file.write(JD_text)
       # JD_text_file.close() 
-      with codecs.open(JD_name, "w", "utf-8-sig") as temp:
+      with codecs.open(str(JD_name), "w", "utf-8-sig") as temp:
         temp.write(description)
     else:
       pass

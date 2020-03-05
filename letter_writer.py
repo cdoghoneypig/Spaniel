@@ -10,10 +10,10 @@
 
 # basic tools
 import os, itertools, sys, json, csv
-import re
+import configparser
+import re, pathlib
 from collections import defaultdict, Counter
 from datetime import datetime
-import configparser
 
 # libraries i wrote
 import keywords_csv_to_json, JD_extractor
@@ -95,7 +95,7 @@ def Get_Bullets(nom_counter, nom_list):
 
 def Write_Letter(final_bullets, url):
   letter_file_name = "letter " + employer + " - " + role + ".txt"
-  letter_file = open(letter_dir + letter_file_name,"w")
+  letter_file = (letter_path / letter_file_name).open("w")
   letter_file.write(url)
   letter_file.write("\n\n")
   letter_file.write(kw[job_type]["textons"]["Greeting"])
@@ -248,10 +248,15 @@ except FileNotFoundError:
 # create a csv for today's run with headers
 # applied_to_date, role, employer, location, notes, ad_url
 # start with this blank list
-job_app_csv_path = cfg['JobAppCSVFolder'] + now + '.csv'
-with open(job_app_csv_path, mode='w') as app_tracker:
-    app_writer = csv.writer(app_tracker)
-    app_writer.writerow(['Date', 'Role', 'Employer', 'Location', 'Notes', 'URL'])
+job_app_csv_path = pathlib.Path(cfg['JobAppCSVFolder']) / (now + '.csv')
+
+# if folder doesn't exist, create it
+if not pathlib.Path(cfg['JobAppCSVFolder']).is_dir():
+  pathlib.Path(cfg['JobAppCSVFolder']).mkdir()
+
+with job_app_csv_path.open(mode='w') as app_tracker:
+  app_writer = csv.writer(app_tracker)
+  app_writer.writerow(['Date', 'Role', 'Employer', 'Location', 'Notes', 'URL'])
 
 # extract JD text files from original html
 JD_extractor.Extract_JD(cfg['InputFolder'], cfg['TextFileFolder'])
@@ -268,15 +273,15 @@ kw = keywords_csv_to_json.Build_Keyword_Dict(
 
 
 
-source_dir = cfg['TextFileFolder']
-letter_dir = cfg['OutputFolder'] + today + "/"
+source_path = pathlib.Path(cfg['TextFileFolder'])
+letter_path = pathlib.Path(cfg['OutputFolder']) / today
 
-# source_dir = "jd_files/"
-# letter_dir = "Letters/" + str(today) + "/"
-if not os.path.isdir(letter_dir):
-  os.mkdir(letter_dir[:-1])
+# source_path = pathlib.Path("jd_files/")
+# letter_path = pathlib.Path("Letters/" + str(today))
+if not letter_path.is_dir():
+  letter_path.mkdir(parents = True)
 
-print("\n\nScript scans", source_dir, "and composes cover letters for each job!")
+print("\n\nScript scans", str(source_path), "and composes cover letters for each job!")
 
 driver = webdriver.Chrome(cfg['Webdriver'])
 driver.set_window_size(1200, 1000)
@@ -291,7 +296,7 @@ with open(portal_file, encoding = 'utf-8-sig') as portal_html:
   portal_soup = BeautifulSoup(portal_html, 'html5lib')
 
 
-for each_file in os.listdir(source_dir):
+for each_file in os.listdir(str(source_path)):
   if Bad_File(each_file):
     # print("Ignoring,", each_file)
     continue
@@ -338,13 +343,13 @@ for each_file in os.listdir(source_dir):
     # restyle page for job
     portal_soup.find('body')['class'] = job_type
 
-  JD_file = open(source_dir + each_file, 'r', encoding = 'utf-8-sig')
+  JD_file = (source_path / each_file).open('r', encoding = 'utf-8-sig')
   JD_formatted = JD_file.read()
   JD_text = JD_formatted.lower()
 
   # check if we already wrote a letter for this shit
   letter_file_name = "letter " + employer + " - " + role + ".txt"
-  if os.path.isfile(letter_dir + letter_file_name):
+  if (letter_path / letter_file_name).is_file():
     print("Already have a letter! Skipping it.")
     continue
 
@@ -409,7 +414,7 @@ for each_file in os.listdir(source_dir):
   # log this as a job app in a csv
   # applied_to_date, role, employer, location, notes, ad_url
   app_row = ['',role,employer,location,','.join(three_bullets), ad_url]
-  with open(job_app_csv_path, 'a', newline='') as f:
+  with job_app_csv_path.open('a', newline='') as f:
     writer = csv.writer(f)
     writer.writerow(app_row)
 
