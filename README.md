@@ -2,12 +2,18 @@
 ## Job Hunting Helper
 
 ### Dependencies:
-- Python 3.4
+- Python 3.4+
 - pathlib
 - Selenium
+    - pip3 install selenium
 - chrome webdriver https://chromedriver.chromium.org/downloads
-- BeautifulSoup4
+    - download this fresh! it gets outdated quickly
+- BeautifulSoup
+    - pip install beautifulsoup4
+- html5lib
+  - pip install html5lib
 - configparser
+  - pip install configparser
 
 # Overview
 Spaniel is a set of scripts that scans job ads and produces appropriate cover letters. It automatically scans ads and nominates talking points, but lets the user select which talking points and in what order to put them.
@@ -50,7 +56,7 @@ You'll need to download each sheet to the `keywords` folder.
 ### Job Types
 Spaniel can handle multiple job types (such as "researcher" vs "designer"). Sotre the keyword sheets in subdirectories named for the job type.
 
-If you do this, you could also add a bit of css to spaniel.css that restyles the background for the job type. Actually, this should be a feature in letter_writer, but I hardcoded it in spaniel.css for now! 
+If you do this, you could also add a bit of css to spaniel.css that restyles the background for the job type. Actually, this should be a feature in letter_writer, but I hardcoded it in spaniel.css for now!
 
 
 ## Grab some good job ads
@@ -63,7 +69,7 @@ Spaniel has been trained to parse
 * Indeed
 
 ## Run letter_writer
-This should fire up and 
+This should fire up and
 1. Scan all your saved job ads, producing text files from them
 2. Scan your keyword csv files and make json out of them
 3. Show jobs, pulling from the text files it produced just prior, including a legend of all your keywords. You must decide which keywords to select for each job, but Spaniel recommends few and gives you its confidence in them.

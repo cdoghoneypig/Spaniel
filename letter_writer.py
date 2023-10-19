@@ -14,6 +14,7 @@ import configparser
 import re, pathlib
 from collections import defaultdict, Counter
 from datetime import datetime
+import time
 
 # libraries i wrote
 import keywords_csv_to_json, JD_extractor
@@ -21,6 +22,7 @@ import keywords_csv_to_json, JD_extractor
 # webdriver and html parsing
 from selenium import webdriver
 from selenium.webdriver.common.keys import Keys
+from selenium.webdriver.common.by import By
 from bs4 import BeautifulSoup
 
 
@@ -42,8 +44,8 @@ def Get_Frequency(word_index):
 def Get_Distance(w1, w2, source_text):
   # Not actually using this function yet
   if w1 in source_text and w2 in source_text:
-    w1_indexes = [index for index, value in enumerate(source_text) if value == w1]    
-    w2_indexes = [index for index, value in enumerate(source_text) if value == w2]    
+    w1_indexes = [index for index, value in enumerate(source_text) if value == w1]
+    w2_indexes = [index for index, value in enumerate(source_text) if value == w2]
     distances = [abs(item[0] - item[1]) for item in itertools.product(w1_indexes, w2_indexes)]
     # should be a list of all distances
     print(distances)
@@ -52,7 +54,7 @@ def Get_Distance(w1, w2, source_text):
 def Get_Bullets(nom_counter, nom_list):
   # function to collect bullets
   l = ['','','']
-  
+
   # first ask if they just want to accept the recommendations
   first_bullet = input("Enter to accept; or anything else to enter your own ")
   # if they hit enter, give them the rex
@@ -85,7 +87,7 @@ def Get_Bullets(nom_counter, nom_list):
         which_bullet += 1
       # otherwise, show the acceptable options and try again
       else:
-        print(typed_in, "not recognized. Options are:")   
+        print(typed_in, "not recognized. Options are:")
         for each_bullet in sorted(kw[job_type]["bullets"].keys()):
           print("  *", each_bullet)
 
@@ -109,11 +111,17 @@ def Write_Letter(final_bullets, url):
   for i in range (0,3):
     letter_file.write(kw[job_type]["bullets"][final_bullets[i]])
     letter_file.write("\n\n")
-  letter_file.write(kw[job_type]["textons"]["Outro"])
-  letter_file.write("\n\n")
-  letter_file.write(kw[job_type]["textons"]["Sign off"])
-  letter_file.write("\n")
-  letter_file.write(kw[job_type]["textons"]["Name"])
+  try:
+    letter_file.write(kw[job_type]["textons"]["Outro"])
+    letter_file.write("\n\n")
+    letter_file.write(kw[job_type]["textons"]["Sign off"])
+    letter_file.write("\n")
+    letter_file.write(kw[job_type]["textons"]["Name"])
+  except KeyError:
+    print("Missing textons!", Exception)
+    # import code; code.interact(local = locals())
+
+
   letter_file.close()
 
 
@@ -132,7 +140,7 @@ def Display_JD(where, who, what):
   # unfortunately this wraps it in html, head/head, body
   # so I'll extract the body
   jd_html = jd_html.find('body')
- 
+
   JD = portal_soup.find('div',id='description')
   # import code; code.interact(local = locals())
   JD.clear()
@@ -143,12 +151,20 @@ def Display_JD(where, who, what):
     outf.write(portal_soup.prettify())
   # lame but we use Selenium refresh command to load the altered html document
   driver.refresh()
-  driver.find_element_by_tag_name('body').send_keys(Keys.CONTROL + Keys.HOME)
+  # driver.find_element_by_tag_name('body').send_keys(Keys.CONTROL + Keys.HOME)
+  time.sleep(3)
+  # click on the body and hit ctrl home to go to top of page!
+  body_element = driver.find_element(By.TAG_NAME, "body")
+  body_element.send_keys(Keys.CONTROL + Keys.HOME)
 
 def Span_Keyword(a_word, a_bullet, jd):
   # this function has a bug. It can get false positives
   # for text it inserts in. potentially a LOT of insertions
   # though not actually infinite
+  # should fix this by omitting html tags from the jd this function uses
+
+  # import code; code.interact(local = locals())
+
   real_hits = re.findall(a_word, jd, re.IGNORECASE)
   for each_hit in real_hits:
     # defining spanned_word here so it can
@@ -156,12 +172,12 @@ def Span_Keyword(a_word, a_bullet, jd):
     # <span class="cross-functional" title="cross-functional">
     #     work closely with
     #    </span>
-    spanned_word = ('<span class="' 
-                + bullet_class[a_bullet] 
+    spanned_word = ('<span class="'
+                + bullet_class[a_bullet]
                 + '" title="'
-                + bullet_class[a_bullet] 
-                +'">' 
-                + each_hit 
+                + bullet_class[a_bullet]
+                +'">'
+                + each_hit
                 + '</span>')
     jd = jd.replace(each_hit, spanned_word)
   return jd
@@ -181,13 +197,13 @@ def Set_Bullet_Class(bullet_list, colors):
     bullet_css.write('.' + bullet_class[each_bullet] + ':hover {')
     bullet_css.write('\n\t')
     # should use real color set!
-    bullet_css.write('background-color: ' 
+    bullet_css.write('background-color: '
                       + colors[each_bullet].replace('.1','.5') + ';')
     bullet_css.write('\n')
     bullet_css.write('}\n\n')
   bullet_css.close()
   return bullet_class
-    
+
 def Build_Legend(bullets):
   ul_soup = BeautifulSoup('', 'html.parser')
   new_ul = ul_soup.new_tag('ul', attrs={'id': 'bullet-legend'})
@@ -200,7 +216,7 @@ def Build_Legend(bullets):
 
 def Set_Color_CSS(bullet_list):
   # needs input of sorted(kw[job_type]['bullets'].keys())
-  
+
   # set up bullet to color palette dictionary
   with open(cfg['PaletteJSON'], "r") as read_file:
           palette = json.load(read_file)
@@ -211,12 +227,15 @@ def Set_Color_CSS(bullet_list):
     except IndexError:
       print("No palette color for", each_bullet, i)
       print("Using same color as", bullet_list[0])
-      colors[each_bullet] = palette[0]  
+      colors[each_bullet] = palette[0]
   # this dict maps bullets, which may have spaces, to css class names
   # and assigns colors based on the colors dict
   bullet_class = Set_Bullet_Class(bullet_list, colors)
 
   return colors, bullet_class
+
+
+
 
 config = configparser.ConfigParser()
 config.read('spaniel.cfg')
@@ -263,8 +282,8 @@ JD_extractor.Extract_JD(cfg['InputFolder'], cfg['TextFileFolder'])
 
 # 'False' sets function to quiet mode, vs verbose
 kw = keywords_csv_to_json.Build_Keyword_Dict(
-                                            cfg['KeywordFolder'], 
-                                            cfg['KeywordJson'], 
+                                            cfg['KeywordFolder'],
+                                            cfg['KeywordJson'],
                                             False)
 # kw["keywords] = {"spicy" : "tasty"}
 # kw["bullets"] = {"tasty": "I am a very tasty noodle!"}
@@ -283,7 +302,8 @@ if not letter_path.is_dir():
 
 print("\n\nScript scans", str(source_path), "and composes cover letters for each job!")
 
-driver = webdriver.Chrome(cfg['Webdriver'])
+# driver = webdriver.Chrome(cfg['Webdriver'])
+driver = webdriver.Chrome()
 driver.set_window_size(1200, 1000)
 portal_file = cfg['HTMLPage']
 portal_url = "file:" + os.getcwd() + '/' + portal_file
@@ -302,7 +322,7 @@ for each_file in os.listdir(str(source_path)):
     continue
   print("\n- - - - - - -")
   try:
-    employer, role = each_file.split(" - ")  
+    employer, role = each_file.split(" - ")
     role = role.split(".txt")[0]
   except ValueError:
     print("* * * *")
@@ -321,10 +341,10 @@ for each_file in os.listdir(str(source_path)):
 
   # now decide what job_type should be
   if 'researcher' in role.lower():
-    new_job_type = 'uxr'    
+    new_job_type = 'uxr'
   else:
     new_job_type = 'uxd'
-  
+
   print("Job type:", new_job_type)
   print(role)
 
@@ -359,31 +379,40 @@ for each_file in os.listdir(str(source_path)):
   location = JD_text.split("\n")[1]
 
   # keyword scanner
+
+  # this is a bit broken bc it has to detect acronyms and phrases right
+  # import code; code.interact(local = locals())
   topic_votes = defaultdict(lambda: 0)
   for each_keyword in kw[job_type]['keywords']:
+    # ok another bug in here: we're counting "ai" in "against"
     hit_count = len(re.findall(each_keyword,JD_formatted,re.IGNORECASE))
+    # hit_count = len(re.findall(r'\b' + each_keyword + '\b',JD_formatted,re.IGNORECASE))
+    # print(hit_count)
     # hit_count = JD_text.count(each_keyword)
     if hit_count > 0:
       # one nomination per appearance of the keyword
       nominee = kw[job_type]['keywords'][each_keyword]
       topic_votes[nominee] += hit_count
-      JD_formatted = Span_Keyword(each_keyword, 
-                                  kw[job_type]['keywords'][each_keyword], 
+      JD_formatted = Span_Keyword(each_keyword,
+                                  kw[job_type]['keywords'][each_keyword],
                                   JD_formatted)
-  
+
   weighted_votes = {}
-  # Here we weight by an arbitrary dict from a spreadsheet
-  # in the spreadsheet, I calculate weight by how special a topic is
+  # Here we weight by an arbitrary dict from a csv.
+  # In the spreadsheet, I calculate weight by how special a topic is
   # and how many keywords trigger its nomination
-  # eg "get it done" is worth 6 special points and has 13 triggers, so 
+  # eg "get it done" is worth 6 special points and has 13 triggers, so
   # the total weight is 6/13 vs design system with 4/3
-  # Idk if this will work better, but the previous weighting sucked.
+  # This weighting system has been acceptable
   for each_nom in topic_votes:
-    # if this line is failing, perhaps the weights csv does not match
+    # if this line gives an error, perhaps the weights csv does not match
     # the keywords or bullets sheets.
-    weighted_votes[each_nom] = round(topic_votes[each_nom] 
+    try:
+        weighted_votes[each_nom] = round(topic_votes[each_nom]
                                     * float(kw[job_type]['weights'][each_nom])
                                     , 2)
+    except KeyError:
+        print("It seems the keywords don't match in all your csv files! Check again to be sure.")
   weighted = Counter(weighted_votes)
   # import code; code.interact(local = locals())
 
@@ -396,21 +425,21 @@ for each_file in os.listdir(str(source_path)):
 
   # display job ad
   Display_JD(employer, role, JD_formatted)
-  
+
 
   # Let the user decide
   # arguments should be (counter object, list object)
   three_bullets = Get_Bullets(weighted, top_weighted)
-  
+
   # Now use the bullets to compose a letter!
   Write_Letter(three_bullets, ad_url)
   letters_written[(employer + " - " + role)] = [today]
   letters_written[(employer + " - " + role)].extend(three_bullets)
-  
+
   # log that Spaniel wrote this letter
   with open(cfg['LogFile'], 'w') as outfile:
     json.dump(letters_written, outfile, indent=2, sort_keys=True)
-  
+
   # log this as a job app in a csv
   # applied_to_date, role, employer, location, notes, ad_url
   app_row = ['',role,employer,location,','.join(three_bullets), ad_url]
@@ -422,6 +451,3 @@ for each_file in os.listdir(str(source_path)):
 
 print("\n\nWoof Woof! Huzzah!")
 driver.quit()
-
-
-
