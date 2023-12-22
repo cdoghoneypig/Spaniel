@@ -32,8 +32,6 @@ def Get_Wellfound_Ad(saved_from, ad_soup):
 
   # easier to build it via interpreter like this
   # import code; code.interact(local=locals())
-
-
   # get employer
   try:
     job_div = ad_soup.find('div', {'data-test': 'DiscoverModal'})
@@ -70,6 +68,51 @@ def Get_Wellfound_Ad(saved_from, ad_soup):
   return employer, location, role, JD_text
 
 
+
+def Get_BuiltIn_Ad(saved_from, ad_soup):
+
+  # easier to build it via interpreter like this
+  # import code; code.interact(local=locals())
+  # get employer
+
+  name_div = ad_soup.find('div', {'class':'field--name-field-company'})
+  employer = name_div.get_text()
+
+  # get location
+  location_span = ad_soup.find('span', {'class': 'company-address'})
+  location = location_span.get_text()
+
+
+  # find role, this has a nested child that is the location, so annoying
+  job_title_element = ad_soup.find('span', class_='field--name-title')
+
+    # <h1 class="node-title">
+    #   <span class="field field--name-title field--type-string field--label-hidden">UX/UI Designer
+    #     <span class="job-title-location">
+    #       (San Francisco, CA)
+    #     </span>
+    #   </span>
+    # </h1>
+
+  # Remove the nested <span> with class 'job-title-location'
+  job_title_element.find('span', class_='job-title-location').clear()
+  role = job_title_element.get_text(strip=True)
+
+
+  # role = job_title_element.get_text(strip=True) if job_title_element else input("Job title please: ")
+
+  role = role.replace("/","-")
+
+  # description div
+  JD_div = ad_soup.find('div', {'class': 'job-description'})
+  JD_bare = JD_div.get_text("\n", strip=True) if JD_div else input("Paste in the description pls: ")
+
+  # add the first few lines of text to the JD
+  JD_text = saved_from + "\n" + location + "\n" + JD_bare
+
+  return employer, location, role, JD_text
+
+
 def Get_Greenhouse_Ad(saved_from, ad_soup):
 
   # import code; code.interact(local=locals())
@@ -78,16 +121,18 @@ def Get_Greenhouse_Ad(saved_from, ad_soup):
   name_span = ad_soup.find('span', {'class': 'company-name'})
   # they put "  at CompanyName  "
   # employer = name_span.get_text()[8:-4]
-  employer = name_span.get_text().strip(' at')
+  employer = name_span.get_text()
+  employer = employer.replace(' at','').strip()
 
   # location
   location_div = ad_soup.find('div', {'class':'location'})
   # location = location_div.get_text()[7:-5]
-  location = location_div.get_text().strip(' at')
+  location = location_div.get_text().strip()
 
   # find role
   role_h1 = ad_soup.find('h1', {'class': 'app-title'})
-  role = role_h1.get_text()
+  role = role_h1.get_text().strip()
+  role = role.replace("/","-")
 
 
   # find the description div
@@ -95,10 +140,11 @@ def Get_Greenhouse_Ad(saved_from, ad_soup):
   # get the text and convert <br> elements to \n
   JD_text = saved_from + "\n" + location + "\n" + JD_div.get_text("\n")
 
+  # import code
+  # print("greenhouse double check")
+  # code.interact(local=locals())
+
   return employer, location, role, JD_text
-
-
-
 
 
 def Get_Angel_Ad(saved_from, ad_soup):
@@ -166,8 +212,6 @@ def Get_Indeed_Ad(saved_from, ad_soup):
 
   return employer, location, role, JD_text
 
-
-
 def Get_LinkedIn_Ad(saved_from, ad_soup):
   # get employer
   details_div = ad_soup.find('div', {'class': 'job-details-jobs-unified-top-card__primary-description'})
@@ -195,7 +239,9 @@ def Get_LinkedIn_Ad(saved_from, ad_soup):
   #     location = "-"
 
   # find role
-  role_h1 = ad_soup.find('h1', {"class": "job-details-jobs-unified-top-card__job-title"})
+  # print("h1 job-details-jobs-unified-top-card__job-title")
+  # import code; code.interact(local=locals())
+  role_h1 = ad_soup.find("h1", {"class": "job-details-jobs-unified-top-card__job-title"})
   role = role_h1.get_text().strip()
   # fucking ui/ux jobs have a slash. Kill it!
   role = role.replace("/","-")
@@ -266,8 +312,78 @@ def Get_Lensa_Ad(saved_from, ad_soup):
 
   return employer, location, role, JD_text
 
+def Get_Lever_Ad(saved_from, ad_soup):
+  # get employer
+  # employer_div = ad_soup.find('div', {'class': 'department'})
+  # employer = employer_div.get_text()
+  # employer = employer.replace('/','').strip()
+
+  # looks like we need to grab it from the page's title
+  page_title_text = ad_soup.title.get_text()
+  # Split the title based on the dash ("-")
+  employer = page_title_text.split(' - ')[0]
 
 
+  # find location
+  location_div = ad_soup.find('div', {'class': 'location'})
+  location = location_div.get_text()
+
+  # find role
+  role_div = ad_soup.find('div', {'class': 'posting-headline'})
+  role_h2 = role_div.find('h2')
+  role = role_h2.get_text()
+  role = role.replace("/","-")
+
+  # find the description div
+  first_jd_div = ad_soup.find('div', {'data-qa': 'job-description'})
+  JD_div = first_jd_div.parent
+
+  # get the text and convert <br> elements to \n
+  JD_text = saved_from + "\n" + location + "\n" + JD_div.get_text("\n")
+
+
+  return employer, location, role, JD_text
+
+def Get_Ashby_Ad(saved_from, ad_soup):
+
+  # get employer
+  # looks like we need to grab it from the page's title
+  page_title_text = ad_soup.title.get_text()
+  # Split the title based on the dash ("-")
+  employer = page_title_text.split(' @ ')[1]
+
+  # find location
+  #
+  leftpane = ad_soup.find('div', {'class': 'ashby-job-posting-left-pane'})
+  location_section = leftpane.find('h2', string='Location')
+  location = location_section.find_next('p').get_text(strip=True)
+
+  # find role
+  role_h1 = ad_soup.find('h1', {'class': 'ashby-job-posting-heading'})
+  role = role_h1.get_text()
+  role = role.replace("/","-")
+
+  # find the description div
+  JD_div = ad_soup.find('div', {'aria-labelledby': 'job-overview'})
+
+  # get the text and convert <br> elements to \n
+  JD_text = saved_from + "\n" + location + "\n" + JD_div.get_text("\n")
+
+  # import code; code.interact(local=locals())
+
+  return employer, location, role, JD_text
+
+def Get_Manual_Input(saved_from, ad_soup):
+  print("sorry I don't know how to scrape this site. You can copy paste it in though!")
+  employer = input("Employer: ")
+  location = input("Location: ")
+  role = input("Role / Job Title: ")
+  just_description = input ("Paste in the whole job description here: ")
+
+  # get the text and convert <br> elements to \n
+  JD_text = saved_from + "\n" + location + "\n" + just_description
+
+  return employer, location, role, JD_text
 
 # main function called from letter_writer
 def Extract_JD(source_dir, JD_folder):
@@ -318,11 +434,6 @@ def Extract_JD(source_dir, JD_folder):
       employer, location, role, description = Get_Wellfound_Ad(saved_from, ad_soup)
       if sys.platform == "win32":
         winsound.Beep(600,10)
-    # elif 'angel.co' in saved_from:
-    #   job_board = 'AngelList'
-    #   employer, location, role, description = Get_Angel_Ad(saved_from, ad_soup)
-    #   if sys.platform == "win32":
-    #     winsound.Beep(800,10)
     elif 'indeed.com' in saved_from:
       job_board = 'Indeed'
       employer, location, role, description = Get_Indeed_Ad(saved_from, ad_soup)
@@ -346,13 +457,21 @@ def Extract_JD(source_dir, JD_folder):
       employer, location, role, description = Get_Lensa_Ad(saved_from, ad_soup)
       if sys.platform == "win32":
         winsound.Beep(1600,10)
+    elif 'lever.co' in saved_from:
+      job_board = "Lever"
+      employer, location, role, description = Get_Lever_Ad(saved_from, ad_soup)
+    elif 'jobs.ashby' in saved_from:
+      job_board = "Ashby"
+      employer, location, role, description = Get_Ashby_Ad(saved_from, ad_soup)
+    elif 'builtinsf.com' in saved_from:
+      job_board = "BuiltInSF"
+      employer, location, role, description = Get_BuiltIn_Ad(saved_from, ad_soup)
+
     else:
-      print("sorry I don't know how to scrape this site. You can copy paste it in though!")
-      employer = input("Employer")
-      location = input("Location")
-      role = input("Role / Job Title")
-      description = input ("Paste in the whole job description here")
       job_board = "NA"
+      employer, location, role, description = Get_Manual_Input(saved_from, ad_soup)
+
+
 
 
     employer = deEmojify(employer)

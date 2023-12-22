@@ -23,6 +23,7 @@ import keywords_csv_to_json, JD_extractor
 from selenium import webdriver
 from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.common.by import By
+from selenium.common.exceptions import WebDriverException
 from bs4 import BeautifulSoup
 
 
@@ -151,11 +152,10 @@ def Display_JD(where, who, what):
     outf.write(portal_soup.prettify())
   # lame but we use Selenium refresh command to load the altered html document
   driver.refresh()
-  # driver.find_element_by_tag_name('body').send_keys(Keys.CONTROL + Keys.HOME)
-  time.sleep(3)
-  # click on the body and hit ctrl home to go to top of page!
-  body_element = driver.find_element(By.TAG_NAME, "body")
-  body_element.send_keys(Keys.CONTROL + Keys.HOME)
+  scroll_to_top(driver)
+  # find_body_element_with_retry(driver)
+
+
 
 def Span_Keyword(a_word, a_bullet, jd):
   # this function has a bug. It can get false positives
@@ -165,7 +165,19 @@ def Span_Keyword(a_word, a_bullet, jd):
 
   # import code; code.interact(local = locals())
 
-  real_hits = re.findall(a_word, jd, re.IGNORECASE)
+  # real_hits = re.findall(a_word, jd, re.IGNORECASE)
+  # chatgpt recommends this but it doesn't help with partials like "prototyp"
+  # it should be practical to have a 3rd value for each keyword, "partial y/n"
+  # then do either the pattern below or a different one
+  real_hits = re.findall(r'\b' + re.escape(a_word) + r'\b', jd, re.IGNORECASE)
+
+  # # Select pattern based on metadata
+  # if metadata['partial']:
+  #     pattern = r'\b' + escaped_keyword + r'\w*'
+  # else:
+  #     pattern = r'\b' + escaped_keyword + r'\b'
+
+
   for each_hit in real_hits:
     # defining spanned_word here so it can
     # match case with original
@@ -234,7 +246,30 @@ def Set_Color_CSS(bullet_list):
 
   return colors, bullet_class
 
+# def find_body_element_with_retry(driver):
+#   max_retries = 3
+#   retry_intervals = [3, 5]
+#
+#   for attempt in range(max_retries):
+#     try:
+#       body_element = driver.find_element(By.TAG_NAME, "body")
+#       body_element.send_keys(Keys.CONTROL + Keys.HOME)
+#       break  # Break out of the loop if the body element is found successfully
+#     except WebDriverException:
+#       if attempt < len(retry_intervals):
+#         sleep_time = retry_intervals[attempt]
+#         print(f"Retrying in {sleep_time} seconds...")
+#         time.sleep(sleep_time)
+#       else:
+#         print("Couldn't find body after retries.")
+#         break  # Break out of the loop if all retries fail
 
+def scroll_to_top(driver):
+    try:
+        # Scroll to the top of the page using JavaScript
+        driver.execute_script("window.scrollTo(0, 0);")
+    except WebDriverException as e:
+        print(f"Error while scrolling to the top: {e}")
 
 
 config = configparser.ConfigParser()
@@ -278,13 +313,16 @@ with job_app_csv_path.open(mode='w') as app_tracker:
   app_writer.writerow(['Date', 'Role', 'Employer', 'Location', 'Notes', 'URL'])
 
 # extract JD text files from original html
-JD_extractor.Extract_JD(cfg['InputFolder'], cfg['TextFileFolder'])
+convert_html = input("Scan downloaded job files? Converts html to txt. y/n: ")
+if "y" in convert_html.lower():
+  JD_extractor.Extract_JD(cfg['InputFolder'], cfg['TextFileFolder'])
+
 
 # 'False' sets function to quiet mode, vs verbose
 kw = keywords_csv_to_json.Build_Keyword_Dict(
                                             cfg['KeywordFolder'],
                                             cfg['KeywordJson'],
-                                            False)
+                                            True)
 # kw["keywords] = {"spicy" : "tasty"}
 # kw["bullets"] = {"tasty": "I am a very tasty noodle!"}
 # kw["textons"] = {"greeting": "Hey there,"}
@@ -383,19 +421,38 @@ for each_file in os.listdir(str(source_path)):
   # this is a bit broken bc it has to detect acronyms and phrases right
   # import code; code.interact(local = locals())
   topic_votes = defaultdict(lambda: 0)
+  # for each_keyword in kw[job_type]['keywords']:
+  #   # ok another bug in here: we're counting "ai" in "against"
+  #   hit_count = len(re.findall(each_keyword,JD_formatted,re.IGNORECASE))
+  #   # hit_count = len(re.findall(r'\b' + each_keyword + '\b',JD_formatted,re.IGNORECASE))
+  #   # print(hit_count)
+  #   # hit_count = JD_text.count(each_keyword)
+  #   if hit_count > 0:
+  #     # one nomination per appearance of the keyword
+  #     nominee = kw[job_type]['keywords'][each_keyword]
+  #     topic_votes[nominee] += hit_count
+  #     JD_formatted = Span_Keyword(each_keyword,
+  #                                 kw[job_type]['keywords'][each_keyword],
+  #                                 JD_formatted)
+
+  # rewrote this with chatGPT 2023-11-20
+  # the current strategy is that you have to put all variations on the keyword
+  # into the keywords csv
   for each_keyword in kw[job_type]['keywords']:
-    # ok another bug in here: we're counting "ai" in "against"
-    hit_count = len(re.findall(each_keyword,JD_formatted,re.IGNORECASE))
-    # hit_count = len(re.findall(r'\b' + each_keyword + '\b',JD_formatted,re.IGNORECASE))
-    # print(hit_count)
-    # hit_count = JD_text.count(each_keyword)
+    # Escape special characters in the keyword
+    escaped_keyword = re.escape(each_keyword)
+
+    pattern = r'\b' + escaped_keyword + r'\b'
+
+    # Count occurrences using the modified pattern
+    hit_count = len(re.findall(pattern, JD_formatted, re.IGNORECASE))
+    # print(hit_count, "hits for", each_keyword)
+
     if hit_count > 0:
-      # one nomination per appearance of the keyword
       nominee = kw[job_type]['keywords'][each_keyword]
       topic_votes[nominee] += hit_count
-      JD_formatted = Span_Keyword(each_keyword,
-                                  kw[job_type]['keywords'][each_keyword],
-                                  JD_formatted)
+      JD_formatted = Span_Keyword(each_keyword, kw[job_type]['keywords'][each_keyword], JD_formatted)
+
 
   weighted_votes = {}
   # Here we weight by an arbitrary dict from a csv.
